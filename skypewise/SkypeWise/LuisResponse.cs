@@ -21,6 +21,14 @@ namespace SkypeWise
     
     public class EntityItem
     {
+        public bool IsNull
+        {
+            get
+            {
+                return string.IsNullOrEmpty(Entity);
+            }
+        }
+
         public string Entity { get; set; }
         public string Type { get; set; }
         public int StartIndex { get; set; }

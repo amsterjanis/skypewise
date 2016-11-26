@@ -32,10 +32,17 @@ namespace SkypeWise
                 if (length < 4)
                     return new HttpResponseMessage(HttpStatusCode.OK);
 
-                string resultPage = await CallLuis(activity.Text);
+                var luisSays = await CallLuis(activity.Text);
 
-                var reply = activity.CreateReply(resultPage);
-                await connector.Conversations.ReplyToActivityAsync(reply);
+                if(luisSays != null && luisSays.Score > 0.5)
+                {
+                    var resultPage = await GetResearch(luisSays.Entity);
+                    var reply = activity.CreateReply(resultPage);
+                    await connector.Conversations.ReplyToActivityAsync(reply);
+                    return new HttpResponseMessage(HttpStatusCode.OK);
+                }
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
             }
             else
             {
@@ -45,18 +52,16 @@ namespace SkypeWise
             return response;
         }
 
-        public async Task<string> CallLuis(string query)
+        public async Task<EntityItem> CallLuis(string query)
         {
-            var resultPage = string.Empty;
+            var result = new EntityItem();
 
             HttpClient client = new HttpClient();
             var baseUri = "https://api.projectoxford.ai/luis/v2.0/apps/96a1fe5f-1ca3-45b0-9ce5-e900a742b052?subscription-key=911ebdef232a46b7a15c01b41957410c&q=";
             var requestUri = baseUri + query;
-            var result = await client.GetStringAsync(requestUri);
+            var luisResponse = await client.GetStringAsync(requestUri);
 
-            var luisSays = JsonConvert.DeserializeObject<LuisResponse>(result);
-
-            resultPage = result;
+            var luisSays = JsonConvert.DeserializeObject<LuisResponse>(luisResponse);
 
             if(luisSays.TopScoringIntent?.Intent.ToLower() == "research")
             {
@@ -65,16 +70,11 @@ namespace SkypeWise
                 var entities = luisSays.Entities.Where(e => e.Type == "topic")?.OrderByDescending(o => o.Score);
 
                 if (entities == null)
-                    return resultPage;
+                    return new EntityItem();
 
-                var entityToResearch = entities.FirstOrDefault();
-
-                if(entityToResearch != null && entityToResearch.Score > 0.7)
-                {
-                    return await GetResearch(entityToResearch.Entity);
-                }
+                result = entities.FirstOrDefault();
             }
-            return string.Empty;
+            return result;
         }
 
         public async Task<string> GetResearch(string topic)
@@ -83,12 +83,11 @@ namespace SkypeWise
             HttpClient client = new HttpClient();
             var baseUri = "https://ortus.rtu.lv";
             var requestUri = baseUri + "/science/lv/publications/search/" + topic;
-            var result = client.GetStringAsync(requestUri);
-            result.Wait();
+            var result = await client.GetStringAsync(requestUri);
 
             HtmlDocument htmlDoc = new HtmlDocument();
             htmlDoc.OptionFixNestedTags = true;
-            htmlDoc.LoadHtml(result.Result);
+            htmlDoc.LoadHtml(result);
 
             if (htmlDoc.ParseErrors != null && htmlDoc.ParseErrors.Count() > 0 && htmlDoc.DocumentNode == null)
             {
