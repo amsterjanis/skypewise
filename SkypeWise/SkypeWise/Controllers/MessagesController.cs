@@ -17,13 +17,14 @@ namespace SkypeWise
     [BotAuthentication]
     public class MessagesController : ApiController
     {
-        string resultPage = string.Empty;
         /// <summary>
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
         /// </summary>
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
+            string resultPage = string.Empty;
+
             if (activity.Type == ActivityTypes.Message)
             {
                 ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
@@ -37,7 +38,8 @@ namespace SkypeWise
                     var replyWithConfirmation = activity.CreateReply($"You try to transfer {regMatch.Groups[0]} EUR monies to someone");
                     await connector.Conversations.ReplyToActivityAsync(replyWithConfirmation);
                 }
-                else if (activity.Text.ToLower().StartsWith("research "))
+                else //if (activity.Text.ToLower().StartsWith("research "))
+                     if (false) // if (activity.Text.ToLower().StartsWith("research "))
                 {
                     var searchTerm = activity.Text.Remove(0, "research ".Count());
 
@@ -46,12 +48,9 @@ namespace SkypeWise
 
                     reply = activity.CreateReply("Wait...");
 
-                    GetResearch(searchTerm);
-                    while (resultPage == "")
-                    {
-                        System.Threading.Thread.Sleep(1000);
-                        await connector.Conversations.ReplyToActivityAsync(reply);
-                    };
+                    resultPage = await GetResearch(searchTerm);
+
+                    await connector.Conversations.ReplyToActivityAsync(reply);
 
                     reply = activity.CreateReply(resultPage);
                     await connector.Conversations.ReplyToActivityAsync(reply);
@@ -59,7 +58,11 @@ namespace SkypeWise
                 else
                 {
                     //// return our reply to the user
-                    Activity reply = activity.CreateReply($"You sent {activity.Text} which was {length} characters");
+                    //Activity reply = activity.CreateReply($"You sent {activity.Text} which was {length} characters");
+                    //await connector.Conversations.ReplyToActivityAsync(reply);
+
+                    resultPage = await CallLuis(activity.Text);
+                    var reply = activity.CreateReply(resultPage);
                     await connector.Conversations.ReplyToActivityAsync(reply);
                 }
             }
@@ -71,21 +74,54 @@ namespace SkypeWise
             return response;
         }
 
-        public async void GetResearch(string topic)
+        public async Task<string> CallLuis(string query)
         {
+            var resultPage = string.Empty;
+
             HttpClient client = new HttpClient();
-            var baseUrl = "https://ortus.rtu.lv";
-            var requestUrl = baseUrl + "/science/lv/publications/search/" + topic;
-            var result = await client.GetStringAsync(requestUrl);
+            var baseUri = "https://api.projectoxford.ai/luis/v2.0/apps/96a1fe5f-1ca3-45b0-9ce5-e900a742b052?subscription-key=911ebdef232a46b7a15c01b41957410c&q=";
+            var requestUri = baseUri + query;
+            var result = await client.GetStringAsync(requestUri);
+
+            var luisSays = JsonConvert.DeserializeObject<LuisResponse>(result);
+
+            resultPage = result;
+
+            if(luisSays.TopScoringIntent?.Intent.ToLower() == "research")
+            {
+                var topic = string.Empty;
+
+                var entities = luisSays.Entities.Where(e => e.Type == "topic")?.OrderByDescending(o => o.Score);
+
+                if (entities == null)
+                    return resultPage;
+
+                var entityToResearch = entities.FirstOrDefault();
+
+                if(entityToResearch != null && entityToResearch.Score > 0.7)
+                {
+                    return await GetResearch(entityToResearch.Entity);
+                }
+            }
+            return string.Empty;
+        }
+
+        public async Task<string> GetResearch(string topic)
+        {
+            var resultPage = string.Empty;
+            HttpClient client = new HttpClient();
+            var baseUri = "https://ortus.rtu.lv";
+            var requestUri = baseUri + "/science/lv/publications/search/" + topic;
+            var result = client.GetStringAsync(requestUri);
+            result.Wait();
 
             HtmlDocument htmlDoc = new HtmlDocument();
             htmlDoc.OptionFixNestedTags = true;
-            htmlDoc.LoadHtml(result);
+            htmlDoc.LoadHtml(result.Result);
 
             if (htmlDoc.ParseErrors != null && htmlDoc.ParseErrors.Count() > 0 && htmlDoc.DocumentNode == null)
             {
-                resultPage = "Oops, couldn't find anything";
-                return;
+                return "Oops, couldn't find anything";
             }
 
             var resultsToReturn = string.Empty;
@@ -94,8 +130,7 @@ namespace SkypeWise
 
             if (resultsTableBody == null)
             {
-                resultPage = "Oops, nothing found";
-                return;
+                return "Oops, nothing found";
             }
 
             var childs = resultsTableBody.ChildNodes.Where(o => !string.IsNullOrEmpty(o.InnerHtml) && o.InnerHtml != "\n");
@@ -110,15 +145,16 @@ namespace SkypeWise
                 var caption = inspectingNode.InnerText;
                 var link = inspectingNode.GetAttributeValue("href", "/");
 
-                resultsToReturn += index.ToString() + ". " + caption + " : " + baseUrl + link + "\n\n";
+                resultsToReturn += index.ToString() + ". " + caption + " : " + baseUri + link + "\n\n";
             }
 
             if(childs.Count() > 5)
             {
-                resultsToReturn += "\n\nAnd there is more: " + requestUrl;
+                resultsToReturn += "\n\nAnd there is more: " + requestUri;
             }
 
             resultPage = resultsToReturn;
+            return resultsToReturn;
         }
 
         private Activity HandleSystemMessage(Activity message)
