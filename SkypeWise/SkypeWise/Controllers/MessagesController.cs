@@ -7,6 +7,7 @@ using System.Web.Http;
 using System.Web.Http.Description;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace SkypeWise
 {
@@ -25,9 +26,19 @@ namespace SkypeWise
                 // calculate something for us to return
                 int length = (activity.Text ?? string.Empty).Length;
 
-                // return our reply to the user
-                Activity reply = activity.CreateReply($"You sent {activity.Text} which was {length} characters");
-                await connector.Conversations.ReplyToActivityAsync(reply);
+                var reg = new Regex(@"transfer (\d{1,3})");
+                var regMatch = reg.Match(activity.Text.ToLower());
+                if (regMatch.Success)
+                {
+                    var replyWithConfirmation = activity.CreateReply($"You try to transfer {regMatch.Groups[0]} EUR monies to someone");
+                    await connector.Conversations.ReplyToActivityAsync(replyWithConfirmation);
+                }
+                else
+                {
+                    //// return our reply to the user
+                    Activity reply = activity.CreateReply($"You sent {activity.Text} which was {length} characters");
+                    await connector.Conversations.ReplyToActivityAsync(reply);
+                }
             }
             else
             {
