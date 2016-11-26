@@ -13,6 +13,7 @@ namespace SkypeWise
         public List<EntityItem> Entities { get; set; }
     }
 
+
     public class IntentItem
     {
         public string Intent { get; set; }
