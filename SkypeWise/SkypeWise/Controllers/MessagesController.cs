@@ -23,48 +23,19 @@ namespace SkypeWise
         /// </summary>
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
-            string resultPage = string.Empty;
-
             if (activity.Type == ActivityTypes.Message)
             {
                 ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
+
                 // calculate something for us to return
                 int length = (activity.Text ?? string.Empty).Length;
+                if (length < 4)
+                    return new HttpResponseMessage(HttpStatusCode.OK);
 
-                var reg = new Regex(@"transfer (\d{1,3})");
-                var regMatch = reg.Match(activity.Text.ToLower());
-                if (regMatch.Success)
-                {
-                    var replyWithConfirmation = activity.CreateReply($"You try to transfer {regMatch.Groups[0]} EUR monies to someone");
-                    await connector.Conversations.ReplyToActivityAsync(replyWithConfirmation);
-                }
-                else //if (activity.Text.ToLower().StartsWith("research "))
-                     if (false) // if (activity.Text.ToLower().StartsWith("research "))
-                {
-                    var searchTerm = activity.Text.Remove(0, "research ".Count());
+                string resultPage = await CallLuis(activity.Text);
 
-                    var reply = activity.CreateReply("I'll be back with result...");
-                    await connector.Conversations.ReplyToActivityAsync(reply);
-
-                    reply = activity.CreateReply("Wait...");
-
-                    resultPage = await GetResearch(searchTerm);
-
-                    await connector.Conversations.ReplyToActivityAsync(reply);
-
-                    reply = activity.CreateReply(resultPage);
-                    await connector.Conversations.ReplyToActivityAsync(reply);
-                }
-                else
-                {
-                    //// return our reply to the user
-                    //Activity reply = activity.CreateReply($"You sent {activity.Text} which was {length} characters");
-                    //await connector.Conversations.ReplyToActivityAsync(reply);
-
-                    resultPage = await CallLuis(activity.Text);
-                    var reply = activity.CreateReply(resultPage);
-                    await connector.Conversations.ReplyToActivityAsync(reply);
-                }
+                var reply = activity.CreateReply(resultPage);
+                await connector.Conversations.ReplyToActivityAsync(reply);
             }
             else
             {
