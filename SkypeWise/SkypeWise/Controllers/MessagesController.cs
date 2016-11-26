@@ -74,6 +74,15 @@ namespace SkypeWise
 
                 result = entities.FirstOrDefault();
             }
+            else
+            {
+                var entities = luisSays.Entities.Where(e => e.Type == "topic")?.OrderByDescending(o => o.Score);
+
+                if (entities == null)
+                    return new EntityItem();
+
+                // TODO here
+            }
             return result;
         }
 
