@@ -141,6 +141,7 @@
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Researcher.cs" />
+    <Compile Include="Services\Funner.cs" />
     <Compile Include="Services\Luis.cs" />
     <Compile Include="Services\Researcher.cs" />
     <Compile Include="Storage\Transfer.cs" />

@@ -10,7 +10,7 @@ namespace SkypeWise.Services
 {
     public class Luis
     {
-        public async Task<EntityItem> CallLuis(string query)
+        public async Task<Tuple<EntityItem,string>> CallLuis(string query)
         {
             var result = new EntityItem();
 
@@ -28,20 +28,25 @@ namespace SkypeWise.Services
                 var entities = luisSays.Entities.Where(e => e.Type == "topic")?.OrderByDescending(o => o.Score);
 
                 if (entities == null)
-                    return new EntityItem();
+                    return new Tuple<EntityItem, string>(new EntityItem(), string.Empty);
 
                 result = entities.FirstOrDefault();
+                return new Tuple<EntityItem, string>(result, "research");
             }
-            else
+            else if (luisSays.TopScoringIntent?.Intent.ToLower() == "fun")
             {
                 var entities = luisSays.Entities.Where(e => e.Type == "topic")?.OrderByDescending(o => o.Score);
 
                 if (entities == null)
-                    return new EntityItem();
+                    return new Tuple<EntityItem, string>(new EntityItem(), string.Empty);
 
                 // TODO here
+                result = entities.FirstOrDefault();
+                return new Tuple<EntityItem, string>(result, "fun");
             }
-            return result;
+            else
+                return new Tuple<EntityItem, string>(new EntityItem(), string.Empty);
+
         }
     }
 }
