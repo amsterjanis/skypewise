@@ -24,7 +24,7 @@ namespace SkypeWise.Services
 
             if (htmlDoc.ParseErrors != null && htmlDoc.ParseErrors.Count() > 0 && htmlDoc.DocumentNode == null)
             {
-                return "Oops, couldn't find anything";
+                return null;
             }
 
             var resultsToReturn = string.Empty;
@@ -33,7 +33,7 @@ namespace SkypeWise.Services
 
             if (resultsTableBody == null)
             {
-                return "Oops, nothing found";
+                return null;
             }
 
             var childs = resultsTableBody.ChildNodes.Where(o => !string.IsNullOrEmpty(o.InnerHtml) && o.InnerHtml != "\n");
