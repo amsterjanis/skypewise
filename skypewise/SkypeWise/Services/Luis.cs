@@ -10,6 +10,12 @@ namespace SkypeWise.Services
 {
     public class Luis
     {
+        private DataContext dbContext;
+        public Luis()
+        {
+            this.dbContext = new DataContext();
+        }
+
         public async Task<Tuple<EntityItem,string>> CallLuis(string query)
         {
             var result = new EntityItem();
@@ -41,6 +47,10 @@ namespace SkypeWise.Services
                     return new Tuple<EntityItem, string>(new EntityItem(), string.Empty);
 
                 // TODO here
+                // Save to db
+                this.dbContext.IntentEntityPairs.Add(new IntentEntityPair(luisSays.TopScoringIntent, entities.FirstOrDefault()));
+                await this.dbContext.SaveChangesAsync();
+
                 result = entities.FirstOrDefault();
                 return new Tuple<EntityItem, string>(result, "fun");
             }
