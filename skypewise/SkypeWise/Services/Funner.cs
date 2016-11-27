@@ -24,7 +24,7 @@ namespace SkypeWise.Services
 
             if (htmlDoc.ParseErrors != null && htmlDoc.ParseErrors.Count() > 0 && htmlDoc.DocumentNode == null)
             {
-                return "Oops, couldn't find anything";
+                return null;
             }
 
             var resultsToReturn = string.Empty;
@@ -33,7 +33,7 @@ namespace SkypeWise.Services
 
             if (resultsTableBody == null)
             {
-                return "Oops, nothing found";
+                return null;
             }
 
             foreach(var atr in resultsTableBody.Attributes)
@@ -42,29 +42,6 @@ namespace SkypeWise.Services
                     return atr.Value;
             }
             return string.Empty;
-
-            var childs = resultsTableBody.ChildNodes.Where(o => !string.IsNullOrEmpty(o.InnerHtml) && o.InnerHtml != "\n");
-
-            var childsToServe = childs.Take(5).ToList();
-
-            var index = 0;
-            foreach (var node in childsToServe)
-            {
-                index++;
-                var inspectingNode = node.SelectSingleNode("td[2]/a[1]");
-                var caption = inspectingNode.InnerText;
-                var link = inspectingNode.GetAttributeValue("href", "/");
-
-                resultsToReturn += index.ToString() + ". " + caption + " : " + baseUri + link + "\n\n";
-            }
-
-            if (childs.Count() > 5)
-            {
-                resultsToReturn += "\n\nAnd there is more: " + requestUri;
-            }
-
-            resultPage = resultsToReturn;
-            return resultsToReturn;
         }
     }
 }
