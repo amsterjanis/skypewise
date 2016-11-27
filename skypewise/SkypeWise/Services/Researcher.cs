@@ -15,7 +15,7 @@ namespace SkypeWise.Services
             var resultPage = string.Empty;
             HttpClient client = new HttpClient();
             var baseUri = "https://ortus.rtu.lv";
-            var requestUri = baseUri + "/science/lv/publications/search/" + topic;
+            var requestUri = baseUri + "/science/lv/publications/search/" + topic.Replace(" ", "%20");
             var result = await client.GetStringAsync(requestUri);
 
             HtmlDocument htmlDoc = new HtmlDocument();
@@ -53,7 +53,7 @@ namespace SkypeWise.Services
 
             if (childs.Count() > 5)
             {
-                resultsToReturn += "\n\nAnd there is more: " + requestUri;
+                resultsToReturn += "\n\nAnd there is more: " + requestUri.Replace(" ", "%20");
             }
 
             resultPage = resultsToReturn;

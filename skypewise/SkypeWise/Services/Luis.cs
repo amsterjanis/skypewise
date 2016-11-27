@@ -12,9 +12,10 @@ namespace SkypeWise.Services
     public class Luis
     {
         private DataContext dbContext;
-        public Luis()
+
+        public Luis(DataContext context)
         {
-            this.dbContext = new DataContext();
+            this.dbContext = context;
         }
 
         public async Task<Tuple<EntityItem,string>> CallLuis(string query)

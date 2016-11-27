@@ -22,6 +22,8 @@ namespace SkypeWise
         /// </summary>
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
+            var dbContext = new DataContext();
+
             if (activity.Type == ActivityTypes.Message)
             {
                 ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
@@ -31,7 +33,7 @@ namespace SkypeWise
                 if (length < 4)
                     return new HttpResponseMessage(HttpStatusCode.OK);
 
-                var luis = new Services.Luis();
+                var luis = new Services.Luis(dbContext);
                 var luisSays = await luis.CallLuis(activity.Text);
 
                 switch (luisSays.Item2)
