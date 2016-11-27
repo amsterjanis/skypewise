@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Entity;
 using System.Linq;
 using System.Web;
+using SkypeWise.Models;
 
 namespace SkypeWise
 {
@@ -15,22 +16,5 @@ namespace SkypeWise
         }
 
         public DbSet<IntentEntityPair> IntentEntityPairs { get; set; }
-    }
-
-    public class IntentEntityPair
-    {
-        public IntentEntityPair(IntentItem intent, EntityItem entity)
-        {
-            this.Intent = intent;
-            this.Entity = entity;
-        }
-
-        public long Id { get; set; }
-
-        public IntentItem Intent { get; set; }
-
-        public EntityItem Entity { get; set; }
-
-        public string ChannelId { get; set; }
     }
 }

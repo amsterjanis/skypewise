@@ -137,19 +137,17 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Helpers\StringHelper.cs" />
-    <Compile Include="LuisResponse.cs" />
+    <Compile Include="Models\IntentEntityPair.cs" />
+    <Compile Include="Models\LuisResponse.cs" />
     <Compile Include="Migrations\201611270043420_InitialCommit.cs" />
     <Compile Include="Migrations\201611270043420_InitialCommit.Designer.cs">
       <DependentUpon>201611270043420_InitialCommit.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Researcher.cs" />
     <Compile Include="Services\Funner.cs" />
     <Compile Include="Services\Luis.cs" />
     <Compile Include="Services\Researcher.cs" />
-    <Compile Include="Storage\Transfer.cs" />
-    <Compile Include="Storage\TransferStates.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
