@@ -9,6 +9,11 @@ namespace SkypeWise
 {
     public class DataContext : DbContext
     {
+        public DataContext() 
+            : base("DefaultConnection")
+        {
+        }
+
         public DbSet<IntentEntityPair> IntentEntityPairs { get; set; }
     }
 
@@ -20,8 +25,12 @@ namespace SkypeWise
             this.Entity = entity;
         }
 
+        public long Id { get; set; }
+
         public IntentItem Intent { get; set; }
 
         public EntityItem Entity { get; set; }
+
+        public string ChannelId { get; set; }
     }
 }
