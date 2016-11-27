@@ -34,13 +34,32 @@ namespace SkypeWise
                 var luis = new Services.Luis();
                 var luisSays = await luis.CallLuis(activity.Text);
 
-                if(luisSays != null && luisSays.Score > 0.5)
+                switch (luisSays.Item2)
                 {
-                    var researcher = new Services.Researcher();
-                    var resultPage = await researcher.GetResearch(luisSays.Entity);
-                    var reply = activity.CreateReply(resultPage);
-                    await connector.Conversations.ReplyToActivityAsync(reply);
-                    return new HttpResponseMessage(HttpStatusCode.OK);
+                    case "research":
+                        {
+                            if (luisSays.Item1 != null && luisSays.Item1.Score > 0.5)
+                            {
+                                var researcher = new Services.Researcher();
+                                var resultPage = await researcher.GetResearch(luisSays.Item1.Entity);
+                                var reply = activity.CreateReply(resultPage);
+                                await connector.Conversations.ReplyToActivityAsync(reply);
+                                return new HttpResponseMessage(HttpStatusCode.OK);
+                            }
+                            break;
+                        }
+                    case "fun":
+                        {
+                            if (luisSays.Item1 != null && luisSays.Item1.Score > 0.5)
+                            {
+                                var researcher = new Services.Funner();
+                                var resultPage = await researcher.GetFun(luisSays.Item1.Entity);
+                                var reply = activity.CreateReply(resultPage);
+                                await connector.Conversations.ReplyToActivityAsync(reply);
+                                return new HttpResponseMessage(HttpStatusCode.OK);
+                            }
+                            break;
+                        }
                 }
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
