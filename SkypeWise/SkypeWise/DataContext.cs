@@ -14,6 +14,12 @@ namespace SkypeWise
 
     public class IntentEntityPair
     {
+        public IntentEntityPair(IntentItem intent, EntityItem entity)
+        {
+            this.Intent = intent;
+            this.Entity = entity;
+        }
+
         public IntentItem Intent { get; set; }
 
         public EntityItem Entity { get; set; }
